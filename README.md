@@ -29,9 +29,19 @@ input_text:
 ```
 Note you can also create this input_text via the device helpers page!
 
-If you are creating via YAML, you will need to restart again to activate the new entity,
+If you are creating via YAML, you will need to unpdate input text to developer tools page or restart Home assistant.
 
 To generate a response from GPT-3, update the **input_text.gpt_input** entity with the text you want to send to the model. The generated response will be available as an attribute of the **sensor.hassio_openai_response** entity.
+
+To use it in your scripts or automations just set it like this (you can also use templates):
+```yaml
+service: openai_response.openai_input
+data:
+  max_tokens: 350
+  model: gpt-3.5-turbo
+  Instructions: You are a helpful assistant
+  prompt: what can you do?
+```
 
 ## Example
 To display the GPT-3 input and response in your Home Assistant frontend, add the following to your **ui-lovelace.yaml** file or create a card in the Lovelace UI:
