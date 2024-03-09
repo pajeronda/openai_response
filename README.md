@@ -5,7 +5,7 @@ In addition to having updated the code for access to the new openai APIs, I adde
 ## Installation
 **1.** Copy the **openai_response** folder to your Home Assistant's custom_components directory. If you don't have a **custom_components** directory, create one in the same directory as your **configuration.yaml** file.
 
-**2.** Add the following lines to your Home Assistant **configuration.yaml** file or create **openai.yaml** into /packages if you have already configured it, and put:
+**2.** Add the following lines to your Home Assistant **configuration.yaml** file or create **openai.yaml** into **/packages** if you have already configured it, and put:
 ```yaml
 sensor:
   - platform: openai_response
