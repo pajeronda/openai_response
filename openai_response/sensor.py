@@ -4,8 +4,9 @@ from homeassistant.components.sensor import PLATFORM_SCHEMA, SensorEntity
 from homeassistant.const import CONF_API_KEY, CONF_NAME
 import homeassistant.helpers.config_validation as cv
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.event import async_track_state_change  # Importazione diretta
+from homeassistant.helpers.event import async_track_state_change_event
 import logging
+import asyncio
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,7 +44,8 @@ async def async_setup_platform(
     instructions = config[CONF_INSTRUCTIONS]
     max_tokens = config[CONF_TOKEN]
 
-    client = OpenAI(api_key=api_key)  # Set the API key during client initialization
+    # Crea il client OpenAI in modo asincrono
+    client = await hass.async_add_executor_job(lambda: OpenAI(api_key=api_key))
 
     sensor = OpenAIResponseSensor(hass, name, model, instructions, max_tokens, client)
     async_add_entities([sensor], True)
@@ -67,7 +69,7 @@ async def async_setup_platform(
             client,  # Pass the client object as a parameter
         )
         _LOGGER.debug(response)
-        sensor.response_received(response.choices[0].message.content)  # Corrected response handling
+        sensor.response_received(response.choices[0].message.content)
 
     hass.services.async_register(
         DOMAIN, SERVICE_OPENAI_INPUT, async_generate_openai_request
@@ -131,9 +133,12 @@ class OpenAIResponseSensor(SensorEntity):
         self._attr_native_value = "response_received"
         self.async_write_ha_state()
 
-    async def async_generate_openai_response(self, entity_id, old_state, new_state):
+    async def async_generate_openai_response(self, event):
         """Updating the sensor from the input_text"""
-        new_text = new_state.state
+        entity_id = event.data["entity_id"]
+        old_state = event.data["old_state"]
+        new_state = event.data["new_state"]
+        new_text = new_state.state if new_state else None
 
         if new_text:
             self.request_running(self._model, new_text)
@@ -150,7 +155,7 @@ class OpenAIResponseSensor(SensorEntity):
     async def async_added_to_hass(self):
         """Added to hass"""
         self.async_on_remove(
-            async_track_state_change(
+            async_track_state_change_event(
                 self._hass, "input_text.gpt_input", self.async_generate_openai_response
             )
         )
