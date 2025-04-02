@@ -10,6 +10,8 @@ import asyncio
 
 _LOGGER = logging.getLogger(__name__)
 
+CONF_BASE_URL = "base_url"
+DEFAULT_BASE_URL = "https://api.openai.com/v1"
 ATTR_MODEL = "model"
 ATTR_INSTRUCTIONS = "instructions"
 ATTR_PROMPT = "prompt"
@@ -31,6 +33,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_MODEL, default=DEFAULT_MODEL): cv.string,
         vol.Optional(CONF_INSTRUCTIONS, default=DEFAULT_INSTRUCTIONS): cv.string,
         vol.Optional(CONF_TOKEN, default=DEFAULT_TOKEN): cv.positive_int,
+        vol.Optional(CONF_BASE_URL, default=DEFAULT_BASE_URL): cv.string,
     }
 )
 
@@ -43,9 +46,10 @@ async def async_setup_platform(
     model = config[CONF_MODEL]
     instructions = config[CONF_INSTRUCTIONS]
     max_tokens = config[CONF_TOKEN]
+    base_url = config[CONF_BASE_URL]
 
     # Crea il client OpenAI in modo asincrono
-    client = await hass.async_add_executor_job(lambda: OpenAI(api_key=api_key))
+    client = await hass.async_add_executor_job(lambda: OpenAI(api_key=api_key, base_url=base_url ))
 
     sensor = OpenAIResponseSensor(hass, name, model, instructions, max_tokens, client)
     async_add_entities([sensor], True)
